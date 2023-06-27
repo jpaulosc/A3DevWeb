@@ -1,13 +1,14 @@
 import { useState } from "react";
 
-export function useErrors() {
+function useErrors() {
   const [errors, setErrors] = useState([]);
 
   function setError({field, message}) {
+
     const errosAlreadyExists = errors.find((obj => obj.field === field));
-    if (errosAlreadyExists) {
-      return
-    }
+
+    if (errosAlreadyExists) return;
+
     setErrors((prevState) => [
       ...prevState, {
         field,
@@ -26,3 +27,5 @@ export function useErrors() {
 
   return { errors, setError, removeError, getErrorMessageByFieldName};
 }
+
+export {useErrors};

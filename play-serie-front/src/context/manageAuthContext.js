@@ -1,26 +1,24 @@
 import { useState, createContext, useContext, useEffect } from "react";
 
 const AuthContext = createContext(null);
-
-const hasAccessToken = () => window.localStorage.getItem('accessToken') !== null
+const isLogged = window.localStorage.getItem('accessToken') !== null
 
 export function AuthProvider({ children }) {
 
-  const [usera, setUser] = useState(null);
-  const [member, setMember] = useState(null);
-  const [isLogged, setLogged] = useState(hasAccessToken())
-  const [isLoading, setLoading] = useState(true)
+  const [user, setUser] = useState(null);
+  const [status, setStatus] = useState(isLogged ? "authenticated": "")
 
   useEffect(() => {
     const storedToken = window.localStorage.getItem('accessToken')
     if (storedToken) {
       const userData = JSON.parse(window.localStorage.getItem('userData'))
-      setMember({ ...userData })
+      setUser({ ...userData })
+    } else {
+      setStatus("")
     }
-    setLoading(false)
   }, [])
 
-  let signin = async (newUser, callback) => {
+  const signIn = async (newUser, callback) => {
     const [email, password] = newUser
 
     const res = await fetch("http://localhost:3001/login", {
@@ -31,29 +29,34 @@ export function AuthProvider({ children }) {
       }),
       headers: { "Content-Type": "application/json" }
     });
-    const data = await res.json();
-    const userData = {
-      id: data.user.id,
-      name: data.user.name,
-      isAdmin: data.user.isAdmin,
+    const user = await res.json();
+    // If no error and we have user data, return it
+    if (res.ok && user) {
+      const user = await res.json();
+      setUser({ ...user })
+
+      window.localStorage.setItem('accessToken', data.token)
+      window.localStorage.setItem('userData', JSON.stringify(user))
+      callback()
+      return res;
     }
-    setMember({ ...userData })
-    window.localStorage.setItem('accessToken', res.token)
-    window.localStorage.setItem('userData', JSON.stringify(userData))
-    if (res.ok && data) {
-      callback();
-    }
-    return res
+
+    // Caso contrário, lance um erro
+    throw new Error(user?.message ?? "Falha ao autenticar usuário");
   };
 
-  let signout = (callback) => {
+  const signOut = (callback) => {
     setUser(null);
     window.localStorage.removeItem('userData')
     window.localStorage.removeItem('accessToken')
     callback();
   };
 
-  const value = { member, isLoading, isLogged, signin, signout };
+  const data = {
+    user: user
+  }
+
+  const value = { data, status, signIn, signOut };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -1,14 +1,18 @@
-import { useState, createContext, useContext } from "react";
+import React from "react";
+import { useState } from "react";
+import { createContext } from "react";
 
-const ManagerContext = createContext(null);
+export const ManagerContext = createContext(
+  {
+    setManagerMode: () => {},
+  }
+);
 
-export function ManagerModeProvider({ children }) {
+export const ManagerModeProvider = (props) => {
   const [managerMode, setManagerMode] = useState(false);
-  const value = { managerMode, setManagerMode };
-
-  return (<ManagerContext.Provider value={value}>{children}</ManagerContext.Provider>);
+  return (
+    <ManagerContext.Provider value={{managerMode, setManagerMode}}>
+      {props.children}
+    </ManagerContext.Provider>
+  );
 };
-
-export function useManagerMode() {
-  return useContext(ManagerContext);
-}

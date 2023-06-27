@@ -16,7 +16,7 @@ export class UserService {
 
   static async getUserSeries(data ,status) {
     try {
-      const result = await axiosConfig.post(`/user/series?status=${status}`, data);
+      const result = await axiosConfig.post(`/user/series/?status=${status}`, data);
       return result.data;
     } catch (err) {
       console.log(err.message);
